@@ -1,13 +1,15 @@
 name: Build Basilisk 2 APK
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - downloads/**
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   build:
-    if: github.actor != github-actions[bot]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,17 +21,12 @@ jobs:
         run: curl -fsSL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o /tmp/g.zip && unzip -q /tmp/g.zip -d /tmp
       - name: Build APK
         run: /tmp/gradle-8.7/bin/gradle --no-daemon assembleDebug
-      - name: Publish APK
+      - name: Commit APK
         run: |
           mkdir -p downloads
           cp app/build/outputs/apk/debug/app-debug.apk downloads/Basilisk-2-debug.apk
           git config user.name github-actions-bot
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.email bot@users.noreply.github.com
           git add downloads/Basilisk-2-debug.apk
-          git commit -m Publish-debug-APK
+          git commit -m Build-Basilisk-2-APK
           git push
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Basilisk-2-debug-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
